@@ -135,8 +135,10 @@ abstract class WidgetPluginBase extends PluginBase implements WidgetPluginInterf
     $items = $this->prepareLink($result);
 
     $children = $result->getChildren();
+    $onlyShowParent = $this->facet->getUseHierarchy();
+
     // Check if we need to expand this result.
-    if ($children && ($this->facet->getExpandHierarchy() || $result->isActive() || $result->hasActiveChildren())) {
+    if ($children && !$onlyShowParent && ($this->facet->getExpandHierarchy() || $result->isActive() || $result->hasActiveChildren())) {
 
       $child_items = [];
       $classes[] = 'facet-item--expanded';
