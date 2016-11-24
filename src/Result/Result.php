@@ -129,8 +129,8 @@ class Result implements ResultInterface {
   /**
    * {@inheritdoc}
    */
-  public function setChildren(ResultInterface $children) {
-    $this->children[] = $children;
+  public function setChildren(array $children) {
+    $this->children = $children;
   }
 
   /**
@@ -138,6 +138,21 @@ class Result implements ResultInterface {
    */
   public function getChildren() {
     return $this->children;
+  }
+
+  /**
+   * Returns true if the value has active children(selected).
+   *
+   * @return bool $active
+   *   A boolean indicating the active state of children.
+   */
+  public function hasActiveChildren() {
+    foreach ($this->getChildren() as $child) {
+      if ($child->isActive() || $child->hasActiveChildren()) {
+        return TRUE;
+      }
+    }
+    return FALSE;
   }
 
 }

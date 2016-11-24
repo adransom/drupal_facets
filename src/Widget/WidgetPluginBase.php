@@ -132,32 +132,40 @@ abstract class WidgetPluginBase extends PluginBase implements WidgetPluginInterf
    */
   protected function buildListItems(ResultInterface $result) {
     $classes = ['facet-item'];
-    if ($children = $result->getChildren()) {
-      $items = $this->prepareLink($result);
+    $items = $this->prepareLink($result);
 
-      $children_markup = [];
+    $children = $result->getChildren();
+    // Check if we need to expand this result.
+    if ($children && ($this->facet->getExpandHierarchy() || $result->isActive() || $result->hasActiveChildren())) {
+
+      $child_items = [];
+      $classes[] = 'facet-item--expanded';
       foreach ($children as $child) {
-        $children_markup[] = $this->buildChild($child);
+        $child_items[] = $this->buildListItems($child);
       }
 
-      $classes[] = 'expanded';
-      $items['children'] = [$children_markup];
+      $items['children'] = [
+        '#theme' => 'item_list',
+        '#items' => $child_items,
+      ];
 
-      if ($result->isActive()) {
-        $items['#attributes'] = ['class' => 'active-trail'];
+      if ($result->hasActiveChildren()) {
+        $classes[] = 'facet-item--active-trail';
       }
+
     }
     else {
-      $items = $this->prepareLink($result);
-
-      if ($result->isActive()) {
-        $items['#attributes'] = ['class' => 'is-active'];
+      if ($children) {
+        $classes[] = 'facet-item--collapsed';
       }
+    }
+
+    if ($result->isActive()) {
+      $items['#attributes'] = ['class' => 'is-active'];
     }
 
     $items['#wrapper_attributes'] = ['class' => $classes];
     $items['#attributes']['data-drupal-facet-item-id'] = $this->facet->getUrlAlias() . '-' . $result->getRawValue();
-
     return $items;
   }
 
@@ -177,21 +185,6 @@ abstract class WidgetPluginBase extends PluginBase implements WidgetPluginInterf
       $item = (new Link($item, $result->getUrl()))->toRenderable();
     }
 
-    return $item;
-  }
-
-  /**
-   * Builds a result item as a render array.
-   *
-   * @param \Drupal\facets\Result\ResultInterface $child
-   *   A result item.
-   *
-   * @return array
-   *   The result item as render array.
-   */
-  protected function buildChild(ResultInterface $child) {
-    $item = $this->prepareLink($child);
-    $item['#wrapper_attributes'] = ['class' => ['leaf']];
     return $item;
   }
 

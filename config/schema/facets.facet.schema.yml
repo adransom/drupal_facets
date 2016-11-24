@@ -32,6 +32,15 @@ facets.facet.*:
     exclude:
       type: boolean
       label: 'Exclude'
+    use_hierarchy:
+      type: boolean
+      label: 'Use hierarchy'
+    expand_hierarchy:
+      type: boolean
+      label: 'Expand hierarchy'
+    enable_parent_when_child_gets_disabled:
+      type: boolean
+      label: 'Enable parent when child gets disabled'
     widget:
       type: mapping
       label: 'Facet widget'

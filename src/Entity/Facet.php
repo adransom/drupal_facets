@@ -41,6 +41,9 @@ use Drupal\facets\FacetInterface;
  *     "facet_source_id",
  *     "widget",
  *     "query_operator",
+ *     "use_hierarchy",
+ *     "expand_hierarchy",
+ *     "enable_parent_when_child_gets_disabled",
  *     "exclude",
  *     "only_visible_when_facet_source_is_visible",
  *     "processor_configs",
@@ -100,11 +103,46 @@ class Facet extends ConfigEntityBase implements FacetInterface {
   protected $widgetInstance;
 
   /**
+   * The hierarchy definition.
+   *
+   * @var array
+   */
+  protected $hierarchy;
+
+  /**
+   * The hierarchy instance.
+   *
+   * @var \Drupal\facets\Hierarchy\HierarchyPluginBase
+   */
+  protected $hierarchy_processor;
+
+  /**
    * The operator to hand over to the query, currently AND | OR.
    *
    * @var string
    */
   protected $query_operator;
+
+  /**
+   * A boolean indicating if items should be rendered in hierarchical structure.
+   *
+   * @var bool
+   */
+  protected $use_hierarchy = FALSE;
+
+  /**
+   * A boolean indicating if hierarchical items should always be expanded.
+   *
+   * @var bool
+   */
+  protected $expand_hierarchy = FALSE;
+
+  /**
+   * Wether or not parents should be enabled when a child gets disabled.
+   *
+   * @var bool
+   */
+  protected $enable_parent_when_child_gets_disabled = TRUE;
 
   /**
    * A boolean flag indicating if search should exclude selected facets.
@@ -233,6 +271,14 @@ class Facet extends ConfigEntityBase implements FacetInterface {
   protected $widget_plugin_manager;
 
   /**
+   * The hierarchy plugin manager.
+   *
+   * @var \Drupal\facets\Hierarchy\HierarchyPluginManager
+   *   The hierarchy plugin manager.
+   */
+  protected $hierarchy_manager;
+
+  /**
    * The facet source config object.
    *
    * @var \Drupal\Facets\FacetSourceInterface
@@ -258,6 +304,16 @@ class Facet extends ConfigEntityBase implements FacetInterface {
     $container = \Drupal::getContainer();
 
     return $this->widget_plugin_manager ?: $container->get('plugin.manager.facets.widget');
+  }
+
+  /**
+   * Returns the hierarchy plugin manager.
+   *
+   * @return \Drupal\facets\Hierarchy\HierarchyPluginManager
+   *   The hierarchy plugin manager.
+   */
+  public function getHierarchyManager() {
+    return $this->hierarchy_manager ?: \Drupal::service('plugin.manager.facets.hierarchy');
   }
 
   /**
@@ -316,6 +372,43 @@ class Facet extends ConfigEntityBase implements FacetInterface {
         ->createInstance($definition['type'], (array) $definition['config']);
     }
     return $this->widgetInstance;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setHierarchy($id, array $configuration = NULL) {
+    if ($configuration === NULL) {
+      $instance = $this->getHierarchyManager()->createInstance($id);
+      // Get the default configuration for this plugin.
+      $configuration = $instance->getConfiguration();
+    }
+    $this->hierarchy = ['type' => $id, 'config' => $configuration];
+
+    // Unset the hierarchy instance, if exists.
+    unset($this->hierarchy_instance);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getHierarchy() {
+    // TODO: do not hardcode on taxonomy, make this configurable (or better,
+    // autoselected depending field type).
+    return ['type' => 'taxonomy', 'config' => []];
+    // return $this->hierarchy;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getHierarchyInstance() {
+    if (!isset($this->hierarchy_instance)) {
+      $definition = $this->getHierarchy();
+      $this->hierarchy_instance = $this->getHierarchyManager()
+        ->createInstance($definition['type'], (array) $definition['config']);
+    }
+    return $this->hierarchy_instance;
   }
 
   /**
@@ -387,6 +480,48 @@ class Facet extends ConfigEntityBase implements FacetInterface {
    */
   public function getQueryOperator() {
     return $this->query_operator ?: 'or';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUseHierarchy($use_hierarchy) {
+    return $this->use_hierarchy = $use_hierarchy;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getUseHierarchy() {
+    return $this->use_hierarchy;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setExpandHierarchy($expand_hierarchy) {
+    return $this->expand_hierarchy = $expand_hierarchy;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getExpandHierarchy() {
+    return $this->expand_hierarchy;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setEnableParentWhenChildGetsDisabled($enable_parent_when_child_gets_disabled) {
+    return $this->enable_parent_when_child_gets_disabled = $enable_parent_when_child_gets_disabled;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getEnableParentWhenChildGetsDisabled() {
+    return $this->enable_parent_when_child_gets_disabled;
   }
 
   /**

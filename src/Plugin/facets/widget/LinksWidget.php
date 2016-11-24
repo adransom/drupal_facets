@@ -34,6 +34,9 @@ class LinksWidget extends WidgetPluginBase {
       $build['#attached']['library'][] = 'facets/soft-limit';
       $build['#attached']['drupalSettings']['facets']['softLimit'][$facet->id()] = $soft_limit;
     }
+    if ($facet->getUseHierarchy()) {
+      $build['#attached']['library'][] = 'facets/drupal.facets.hierarchical';
+    }
     return $build;
   }
 

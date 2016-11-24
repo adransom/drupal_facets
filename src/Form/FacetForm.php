@@ -375,6 +375,37 @@ class FacetForm extends EntityForm {
       '#default_value' => $facet->getExclude(),
     ];
 
+    $form['facet_settings']['use_hierarchy'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Use hierarchy'),
+      '#description' => $this->t('Renders the items using hierarchy. Requires the hierarchy processor configured in search api for this field. If disabled all items will be flatten.') . '<br/><strong>At this moment only hierarchical taxonomy terms are supported.</strong>',
+      '#default_value' => $facet->getUseHierarchy(),
+    ];
+
+    $form['facet_settings']['expand_hierarchy'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Always expand hierarchy'),
+      '#description' => $this->t('Render entire tree, regardless of whether the parents are active or not.'),
+      '#default_value' => $facet->getExpandHierarchy(),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="facet_settings[use_hierarchy]"]' => array('checked' => TRUE),
+        ),
+      ),
+    ];
+
+    $form['facet_settings']['enable_parent_when_child_gets_disabled'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Enable parent when child gets disabled'),
+      '#description' => $this->t('Uncheck this if you want to allow de-activating an entire hierarchical trail by clicking an active child.'),
+      '#default_value' => $facet->getEnableParentWhenChildGetsDisabled(),
+      '#states' => array(
+        'visible' => array(
+          ':input[name="facet_settings[use_hierarchy]"]' => array('checked' => TRUE),
+        ),
+      ),
+    ];
+
     $form['facet_settings']['weight'] = [
       '#type' => 'number',
       '#title' => $this->t('Weight'),
@@ -576,6 +607,9 @@ class FacetForm extends EntityForm {
     $facet->setQueryOperator($form_state->getValue(['facet_settings', 'query_operator']));
 
     $facet->setExclude($form_state->getValue(['facet_settings', 'exclude']));
+    $facet->setUseHierarchy($form_state->getValue(['facet_settings', 'use_hierarchy']));
+    $facet->setExpandHierarchy($form_state->getValue(['facet_settings', 'expand_hierarchy']));
+    $facet->setEnableParentWhenChildGetsDisabled($form_state->getValue(['facet_settings', 'enable_parent_when_child_gets_disabled']));
 
     $facet->save();
     drupal_set_message(t('Facet %name has been updated.', ['%name' => $facet->getName()]));

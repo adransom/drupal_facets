@@ -114,7 +114,8 @@ class CoreNodeSearchDate extends QueryTypePluginBase {
           $result->setActiveState(TRUE);
           // Sets the children for the current parent..
           if ($parent) {
-            $parent->setChildren($result);
+            $children = array_merge($parent->getChildren(), [$result]);
+            $parent->setChildren($children);
           }
           else {
             $parent = $parent_facet_results[] = $result;
@@ -180,7 +181,8 @@ class CoreNodeSearchDate extends QueryTypePluginBase {
       $parent = end($parent_facet_results);
       if ($parent instanceof ResultInterface) {
         foreach ($facet_results as $result) {
-          $parent->setChildren($result);
+          $children = array_merge($parent->getChildren(), [$result]);
+          $parent->setChildren($children);
           $this->facet->setResults($parent_facet_results);
         }
       }

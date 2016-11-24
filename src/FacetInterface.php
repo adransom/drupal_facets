@@ -41,6 +41,35 @@ interface FacetInterface extends ConfigEntityInterface {
   public function getWidgetInstance();
 
   /**
+   * Sets the facet hierarchy definition.
+   *
+   * @param string $id
+   *   The hierarchy plugin id.
+   * @param array $configuration
+   *   (optional) The facet hierarchy plugin configuration. When empty, the
+   *   default plugin configuration will be used.
+   */
+  public function setHierarchy($id, array $configuration = NULL);
+
+  /**
+   * Returns the facet hierarchy definition.
+   *
+   * @return array
+   *   An associative array with the following structure:
+   *   - id: The hierarchy plugin id as a string.
+   *   - config: The widget configuration as an array.
+   */
+  public function getHierarchy();
+
+  /**
+   * Returns the facet hierarchy instance.
+   *
+   * @return \Drupal\facets\Hierarchy\HierarchyPluginBase
+   *   The plugin instance
+   */
+  public function getHierarchyInstance();
+
+  /**
    * Returns field identifier.
    *
    * @return string
@@ -179,6 +208,63 @@ interface FacetInterface extends ConfigEntityInterface {
    *   A boolean flag indicating if search should exlude selected facets
    */
   public function getExclude();
+
+  /**
+   * Returns the value of the use_hierarchy boolean.
+   *
+   * This will return true when the results in the facet should be rendered in
+   * a hierarchical structure.
+   *
+   * @return bool
+   *   A boolean flag indicating if results should be rendered using hierarchy.
+   */
+  public function getUseHierarchy();
+
+  /**
+   * Sets the use_hierarchy.
+   *
+   * @param bool $use_hierarchy
+   *   A boolean flag indicating if results should be rendered using hierarchy.
+   */
+  public function setUseHierarchy($use_hierarchy);
+
+  /**
+   * Returns the value of the expand_hierarchy boolean.
+   *
+   * This will return true when the results in the facet should be expanded in
+   * a hierarchical structure, regardless of active state.
+   *
+   * @return bool
+   *   Wether or not results should always be expanded using hierarchy.
+   */
+  public function getExpandHierarchy();
+
+  /**
+   * Sets the expand_hierarchy.
+   *
+   * @param bool $expand_hierarchy
+   *   Wether or not results should always be expanded using hierarchy.
+   */
+  public function setExpandHierarchy($expand_hierarchy);
+
+  /**
+   * Returns the value of the enable_parent_when_child_gets_disabled boolean.
+   *
+   * This will return true when the parent item in the facet should be enabled
+   * in an hierarchical structure, when a child facet item gets disabled.
+   *
+   * @return bool
+   *   Wether or not parents should be enabled when a child gets disabled.
+   */
+  public function getEnableParentWhenChildGetsDisabled();
+
+  /**
+   * Sets the enable_parent_when_child_gets_disabled.
+   *
+   * @param bool $enable_parent_when_child_gets_disabled
+   *   Wether or not parents should be enabled when a child gets disabled.
+   */
+  public function setEnableParentWhenChildGetsDisabled($enable_parent_when_child_gets_disabled);
 
   /**
    * Returns the plugin name for the url processor.

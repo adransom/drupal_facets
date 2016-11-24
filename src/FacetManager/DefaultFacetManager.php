@@ -66,6 +66,11 @@ class DefaultFacetManager {
   protected $facets = [];
 
   /**
+   * An array of all entity ids in the active resultset which are a child.
+   */
+  protected $childIds = [];
+
+  /**
    * An array flagging which facet source' facets have been processed.
    *
    * This variable acts as a semaphore that ensures facet data is processed
@@ -292,6 +297,24 @@ class DefaultFacetManager {
       $results = $processor->build($facet, $results);
     }
 
+    // Handle hierarchy.
+    if ($results && $facet->getUseHierarchy()) {
+      $keyed_results = [];
+      foreach ($results as $result) {
+        $keyed_results[$result->getRawValue()] = $result;
+      }
+
+      $parent_groups = $facet->getHierarchyInstance()->getChildIds(array_keys($keyed_results));
+      $keyed_results = $this->buildHierarchicalTree($keyed_results, $parent_groups);
+
+      // Remove children from primary level.
+      foreach (array_unique($this->childIds) as $child_id) {
+        unset($keyed_results[$child_id]);
+      }
+
+      $results = array_values($keyed_results);
+    }
+
     // Trigger sort stage.
     $active_sort_processors = [];
     foreach ($facet->getProcessorsByStage(ProcessorInterface::STAGE_SORT) as $processor) {
@@ -375,6 +398,39 @@ class DefaultFacetManager {
   public function returnProcessedFacet(FacetInterface $facet) {
     $this->processFacets($facet->getFacetSourceId());
     return !empty($this->facets[$facet->id()]) ? $this->facets[$facet->id()] : NULL;
+  }
+
+  /**
+   * Builds an hierarchical structure for results.
+   *
+   * When given an array of results and an array which defines the hierarchical
+   * structure, this will build the results structure and set all childs.
+   *
+   * @param \Drupal\facets\Result\ResultInterface[] $keyed_results
+   *   An array of results keyed by id.
+   * @param array $parent_groups
+   *   An array of 'child id arrays' keyed by their parent id.
+   *
+   * @return \Drupal\facets\Result\ResultInterface[]
+   *   An array of results structured hierarchicaly.
+   */
+  protected function buildHierarchicalTree($keyed_results, $parent_groups) {
+    foreach ($keyed_results as &$result) {
+      $current_id = $result->getRawValue();
+      if (isset($parent_groups[$current_id]) && $parent_groups[$current_id]) {
+        $child_ids = $parent_groups[$current_id];
+        $child_keyed_results = [];
+        foreach($child_ids as $child_id){
+          if(isset($keyed_results[$child_id])){
+            $child_keyed_results[$child_id] = $keyed_results[$child_id];
+          }
+        }
+        $result->setChildren($this->buildHierarchicalTree($child_keyed_results, $parent_groups));
+        $this->childIds = array_merge($this->childIds, $child_ids);
+      }
+    }
+
+    return $keyed_results;
   }
 
 }

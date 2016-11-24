@@ -66,6 +66,14 @@ interface ResultInterface {
   public function isActive();
 
   /**
+   * Returns true if the value has active children(selected).
+   *
+   * @return bool $active
+   *   A boolean indicating the active state of children.
+   */
+  public function hasActiveChildren();
+
+  /**
    * Overrides the display value of a result.
    *
    * @param string $display_value
@@ -76,10 +84,10 @@ interface ResultInterface {
   /**
    * Sets children results.
    *
-   * @param \Drupal\facets\Result\ResultInterface $children
+   * @param \Drupal\facets\Result\ResultInterface[] $children
    *   The children to be added.
    */
-  public function setChildren(ResultInterface $children);
+  public function setChildren(array $children);
 
   /**
    * Returns children results.
