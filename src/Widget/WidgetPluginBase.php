@@ -130,20 +130,20 @@ abstract class WidgetPluginBase extends PluginBase implements WidgetPluginInterf
    * @return array
    *   A renderable array of the result.
    */
-  protected function buildListItems(ResultInterface $result) {
+  protected function buildListItems(ResultInterface $result, $level = 0) {
     $classes = ['facet-item'];
     $items = $this->prepareLink($result);
 
     $children = $result->getChildren();
-    $onlyShowParent = $this->facet->getUseHierarchy();
+    $maxLevels = 2;
 
     // Check if we need to expand this result.
-    if ($children && !$onlyShowParent && ($this->facet->getExpandHierarchy() || $result->isActive() || $result->hasActiveChildren())) {
+    if ($children && ($level + 1 < $maxLevels) && ($this->facet->getExpandHierarchy() || $result->isActive() || $result->hasActiveChildren())) {
 
       $child_items = [];
       $classes[] = 'facet-item--expanded';
       foreach ($children as $child) {
-        $child_items[] = $this->buildListItems($child);
+        $child_items[] = $this->buildListItems($child, $level + 1);
       }
 
       $items['children'] = [
